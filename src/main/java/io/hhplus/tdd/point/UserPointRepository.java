@@ -16,4 +16,8 @@ public class UserPointRepository {
 	public UserPoint point(final long id) {
 		return userPointTable.selectById(id);
 	}
+
+	public UserPoint charge(final long id, final long amount) {
+		return userPointTable.insertOrUpdate(id, amount);
+	}
 }

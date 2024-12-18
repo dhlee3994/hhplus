@@ -18,4 +18,8 @@ public class PointHistoryRepository {
 	public List<PointHistory> history(final long id) {
 		return pointHistoryTable.selectAllByUserId(id);
 	}
+
+	public PointHistory charge(final long id, final long amount, final long updateMillis) {
+		return pointHistoryTable.insert(id, amount, TransactionType.CHARGE, updateMillis);
+	}
 }
