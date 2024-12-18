@@ -1,13 +1,10 @@
 package io.hhplus.tdd.point;
 
 import static io.hhplus.tdd.point.TransactionType.CHARGE;
-import static org.assertj.core.api.Assertions.*;
+import static io.hhplus.tdd.point.TransactionType.USE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.assertj.core.groups.Tuple.tuple;
-import static org.mockito.BDDMockito.given;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 import java.util.List;
 
@@ -30,8 +27,6 @@ class PointServiceIntegrationTest {
 
 	@Autowired
 	private PointHistoryTable pointHistoryTable;
-
-
 
 	@DisplayName("사용자의 포인트를 조회할 수 있다.")
 	@Test
@@ -164,5 +159,58 @@ class PointServiceIntegrationTest {
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
 			.isInstanceOf(IllegalStateException.class)
 			.hasMessageContaining("최대 포인트는 100,000,000원입니다.");
+	}
+
+	@DisplayName("1000 포인트를 보유하고 있을 때 1000포인트를 사용하면 0포인트가 된다.")
+	@Test
+	void use() throws Exception {
+		// given
+		final long userId = System.currentTimeMillis();
+		final long point = 1000L;
+		final long amount = 1000L;
+		userPointTable.insertOrUpdate(userId, point);
+
+		// when
+		final UserPoint result = pointService.use(userId, amount);
+
+		// then
+		assertThat(result).isNotNull()
+			.extracting("id", "point")
+			.contains(userId, 0L);
+
+		final List<PointHistory> histories = pointHistoryTable.selectAllByUserId(userId);
+		assertThat(histories).hasSize(1)
+			.extracting("userId", "amount", "type", "updateMillis")
+			.contains(tuple(userId, amount, USE, result.updateMillis()));
+	}
+
+	@DisplayName("양수가 아닌 포인트를 사용하려고 하면 예외가 발생한다.")
+	@Test
+	void useZeroPoint() throws Exception {
+		// given
+		final long userId = System.currentTimeMillis();
+		final long point = 100L;
+		final long amount = 0L;
+		userPointTable.insertOrUpdate(userId, point);
+
+		// when & then
+		assertThatThrownBy(() -> pointService.use(userId, amount))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessage("사용 포인트는 양수여야합니다.");
+	}
+
+	@DisplayName("보유 포인트 이상으로 사용하려고 하면 예외가 발생한다.")
+	@Test
+	void useOverCurrentPoint() throws Exception {
+		// given
+		final long userId = System.currentTimeMillis();
+		final long point = 1L;
+		final long amount = 2L;
+		userPointTable.insertOrUpdate(userId, point);
+
+		// when & then
+		assertThatThrownBy(() -> pointService.use(userId, amount))
+			.isInstanceOf(IllegalStateException.class)
+			.hasMessageContaining("보유 포인트보다 많이 사용할 수 없습니다. 사용 가능 포인트는 1입니다.");
 	}
 }
