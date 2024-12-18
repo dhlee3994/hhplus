@@ -35,4 +35,14 @@ public class PointService {
 
 		return chargedUserPoint;
 	}
+
+	public UserPoint use(final long id, final long amount) {
+		final UserPoint userPoint = userPointRepository.point(id);
+		final long usedPoint = userPoint.use(amount);
+		final UserPoint chargedUserPoint = userPointRepository.use(id, usedPoint);
+
+		pointHistoryRepository.use(id, amount, chargedUserPoint.updateMillis());
+
+		return chargedUserPoint;
+	}
 }

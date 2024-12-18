@@ -31,4 +31,19 @@ public record UserPoint(
 			throw new IllegalStateException("최대 포인트는 100,000,000원입니다. 충전 가능 포인트는 " + (MAX_POINT - this.point) + "입니다.");
 		}
 	}
+
+	public long use(final long point) {
+		validateUsePoint(point);
+		return this.point - point;
+	}
+
+	private void validateUsePoint(final long usePoint) {
+		if (usePoint <= 0) {
+			throw new IllegalStateException("사용 포인트는 양수여야합니다.");
+		}
+
+		if (this.point < usePoint) {
+			throw new IllegalStateException("보유 포인트보다 많이 사용할 수 없습니다. 사용 가능 포인트는 " + this.point + "입니다.");
+		}
+	}
 }
