@@ -13,9 +13,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import io.hhplus.tdd.database.PointHistoryTable;
-import io.hhplus.tdd.database.UserPointTable;
-
 @SpringBootTest
 class PointServiceIntegrationTest {
 
@@ -23,17 +20,17 @@ class PointServiceIntegrationTest {
 	private PointService pointService;
 
 	@Autowired
-	private UserPointTable userPointTable;
+	private UserPointRepository userPointRepository;
 
 	@Autowired
-	private PointHistoryTable pointHistoryTable;
+	private PointHistoryRepository pointHistoryRepository;
 
 	@DisplayName("사용자의 포인트를 조회할 수 있다.")
 	@Test
 	void point() throws Exception {
 		// given
 		final long id = System.currentTimeMillis();
-		userPointTable.insertOrUpdate(id, 2000L);
+		userPointRepository.charge(id, 2000L);
 
 		// when
 		final UserPoint result = pointService.point(id);
@@ -67,7 +64,7 @@ class PointServiceIntegrationTest {
 		final long amount = 2000L;
 		final TransactionType type = CHARGE;
 		final long updateMillis = System.currentTimeMillis();
-		pointHistoryTable.insert(userId, amount, type, updateMillis);
+		pointHistoryRepository.charge(userId, amount, updateMillis);
 
 		// when
 		final List<PointHistory> results = pointService.history(userId);
@@ -100,7 +97,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 1000L;
 		final long amount = 1000L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when
 		final UserPoint result = pointService.charge(userId, amount);
@@ -110,7 +107,7 @@ class PointServiceIntegrationTest {
 			.extracting("id", "point")
 			.contains(userId, 2000L);
 
-		final List<PointHistory> histories = pointHistoryTable.selectAllByUserId(userId);
+		final List<PointHistory> histories = pointHistoryRepository.history(userId);
 		assertThat(histories).hasSize(1)
 			.extracting("userId", "amount", "type", "updateMillis")
 			.contains(tuple(userId, amount, CHARGE, result.updateMillis()));
@@ -123,7 +120,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 100L;
 		final long amount = 0L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
@@ -138,7 +135,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 100L;
 		final long amount = 100_001L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
@@ -153,7 +150,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 100_000_000L;
 		final long amount = 1L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
@@ -168,7 +165,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 1000L;
 		final long amount = 1000L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when
 		final UserPoint result = pointService.use(userId, amount);
@@ -178,7 +175,7 @@ class PointServiceIntegrationTest {
 			.extracting("id", "point")
 			.contains(userId, 0L);
 
-		final List<PointHistory> histories = pointHistoryTable.selectAllByUserId(userId);
+		final List<PointHistory> histories = pointHistoryRepository.history(userId);
 		assertThat(histories).hasSize(1)
 			.extracting("userId", "amount", "type", "updateMillis")
 			.contains(tuple(userId, amount, USE, result.updateMillis()));
@@ -191,7 +188,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 100L;
 		final long amount = 0L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when & then
 		assertThatThrownBy(() -> pointService.use(userId, amount))
@@ -206,7 +203,7 @@ class PointServiceIntegrationTest {
 		final long userId = System.currentTimeMillis();
 		final long point = 1L;
 		final long amount = 2L;
-		userPointTable.insertOrUpdate(userId, point);
+		userPointRepository.charge(userId, point);
 
 		// when & then
 		assertThatThrownBy(() -> pointService.use(userId, amount))
