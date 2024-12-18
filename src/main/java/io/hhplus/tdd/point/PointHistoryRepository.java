@@ -22,4 +22,8 @@ public class PointHistoryRepository {
 	public PointHistory charge(final long id, final long amount, final long updateMillis) {
 		return pointHistoryTable.insert(id, amount, TransactionType.CHARGE, updateMillis);
 	}
+
+	public PointHistory use(final long id, final long amount, final long updateMillis) {
+		return pointHistoryTable.insert(id, amount, TransactionType.USE, updateMillis);
+	}
 }
