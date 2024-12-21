@@ -10,6 +10,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import java.util.List;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,9 @@ class PointServiceTest {
 
 	@Mock
 	private PointHistoryRepository pointHistoryRepository;
+
+	@Mock
+	private LockManager lockManager;
 
 	@DisplayName("사용자의 포인트를 조회할 수 있다.")
 	@Test
@@ -116,6 +120,8 @@ class PointServiceTest {
 		given(userPointRepository.charge(userId, userPoint.charge(amount)))
 			.willReturn(new UserPoint(userId, userPoint.charge(amount), System.currentTimeMillis()));
 
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
 		// when
 		final UserPoint result = pointService.charge(userId, amount);
 
@@ -136,6 +142,9 @@ class PointServiceTest {
 		given(userPointRepository.point(userId))
 			.willReturn(new UserPoint(userId, point, System.currentTimeMillis()));
 
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
+
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
 			.isInstanceOf(IllegalStateException.class)
@@ -152,6 +161,9 @@ class PointServiceTest {
 		given(userPointRepository.point(userId))
 			.willReturn(new UserPoint(userId, point, System.currentTimeMillis()));
 
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
+
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
 			.isInstanceOf(IllegalStateException.class)
@@ -167,6 +179,9 @@ class PointServiceTest {
 		final long amount = 1L;
 		given(userPointRepository.point(userId))
 			.willReturn(new UserPoint(userId, point, System.currentTimeMillis()));
+
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
 
 		// when & then
 		assertThatThrownBy(() -> pointService.charge(userId, amount))
@@ -188,6 +203,9 @@ class PointServiceTest {
 		given(userPointRepository.use(userId, userPoint.use(amount)))
 			.willReturn(new UserPoint(userId, userPoint.use(amount), System.currentTimeMillis()));
 
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
+
 		// when
 		final UserPoint result = pointService.use(userId, amount);
 
@@ -208,6 +226,9 @@ class PointServiceTest {
 		given(userPointRepository.point(userId))
 			.willReturn(new UserPoint(userId, point, System.currentTimeMillis()));
 
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
+
 		// when & then
 		assertThatThrownBy(() -> pointService.use(userId, amount))
 			.isInstanceOf(IllegalStateException.class)
@@ -223,6 +244,9 @@ class PointServiceTest {
 		final long amount = 2L;
 		given(userPointRepository.point(userId))
 			.willReturn(new UserPoint(userId, point, System.currentTimeMillis()));
+
+		given(lockManager.getLock(userId))
+			.willReturn(new ReentrantLock(true));
 
 		// when & then
 		assertThatThrownBy(() -> pointService.use(userId, amount))
