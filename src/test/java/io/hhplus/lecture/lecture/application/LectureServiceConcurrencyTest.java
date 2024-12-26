@@ -94,4 +94,54 @@ class LectureServiceConcurrencyTest extends BaseTest {
 		assertThat(successCount).isEqualTo(30);
 		assertThat(failureCount).isEqualTo(exceptionCount.get());
 	}
+
+
+	@DisplayName("동일한 유저가 동일한 강의를 동시에 5번 신청하면 1번의 요청만 성공하고 나머지는 실패한다.")
+	@Test
+	void oneLectureOneUserEnroll() throws Exception {
+		// given
+		final Long userId = 1L;
+		final LocalDateTime startedAt = LocalDateTime.of(2024, 12, 20, 10, 0);
+		final LocalDateTime endedAt = LocalDateTime.of(2024, 12, 21, 10, 0);
+		final Lecture savedLecture = lectureJpaRepository.save(Lecture.builder()
+			.title("lectureA")
+			.lecturerName("lecturerA")
+			.period(new Period(startedAt, endedAt))
+			.build());
+
+		final List<CompletableFuture<Boolean>> tasks = new ArrayList<>();
+		final AtomicInteger exceptionCount = new AtomicInteger(0);
+
+		final int enrollTryCount = 5;
+
+		// when
+		for (int i = 0; i < enrollTryCount; i++) {
+			tasks.add(CompletableFuture.supplyAsync(() -> {
+				lectureService.enroll(new EnrollLectureRequest(userId, savedLecture.getId()));
+				return true;
+			}).exceptionally(e -> {
+				if (e.getMessage().contains(ALREADY_ENROLLED_LECTURE.getMessage())) {
+					exceptionCount.incrementAndGet();
+				}
+				return false;
+			}));
+		}
+
+		// then
+		CompletableFuture.allOf(tasks.toArray(new CompletableFuture[0])).join();
+
+		int successCount = 0;
+		int failureCount = 0;
+		for (CompletableFuture<Boolean> task : tasks) {
+			if (task.get()) {
+				successCount++;
+			} else {
+				failureCount++;
+			}
+		}
+
+		assertThat(exceptionCount.get()).isEqualTo(4);
+		assertThat(successCount).isEqualTo(1);
+		assertThat(failureCount).isEqualTo(exceptionCount.get());
+	}
 }
