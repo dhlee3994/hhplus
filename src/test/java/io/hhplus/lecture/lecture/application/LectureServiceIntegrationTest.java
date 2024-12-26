@@ -293,4 +293,61 @@ class LectureServiceIntegrationTest extends BaseTest {
 				.containsExactly(savedLecture.getId(), title, lecturerName, capacity);
 		}
 	}
+
+	@DisplayName("사용자별 신청한 강의 목록 조회")
+	@Nested
+	class EnrolledLectures {
+
+		@DisplayName("사용자가 신청한 강의 목록을 조회할 수 있다.")
+		@Test
+		void givenUserIdWhenGetEnrolledLecturesThenReturnEnrolledLectures() throws Exception {
+			// given
+			final Long userId = 1L;
+			final LocalDateTime startedAt = LocalDateTime.of(2024, 12, 20, 10, 0);
+			final LocalDateTime endedAt = LocalDateTime.of(2024, 12, 21, 10, 0);
+
+			// @formatter:off
+			final Lecture lectureA = lectureJpaRepository.save(Lecture.builder().title("titleA").lecturerName("lecturerNameA").period(new Period(startedAt, endedAt)).build());
+			final Lecture lectureB = lectureJpaRepository.save(Lecture.builder().title("titleB").lecturerName("lecturerNameB").period(new Period(startedAt, endedAt)).build());
+			final Lecture lectureC = lectureJpaRepository.save(Lecture.builder().title("titleC").lecturerName("lecturerNameC").period(new Period(startedAt, endedAt)).build());
+
+			enrolledJpaRepository.save(EnrolledLecture.builder().lectureId(lectureA.getId()).userId(userId).build());
+			enrolledJpaRepository.save(EnrolledLecture.builder().lectureId(lectureB.getId()).userId(userId).build());
+			enrolledJpaRepository.save(EnrolledLecture.builder().lectureId(lectureC.getId()).userId(userId).build());
+			// @formatter:on
+
+			// when
+			final List<EnrollLectureResponse> result = lectureService.getEnrolledLectures(userId);
+
+			// then
+			assertThat(result).hasSize(3)
+				.extracting("lectureId", "title", "lecturerName")
+				.containsExactlyInAnyOrder(
+					tuple(lectureA.getId(), lectureA.getTitle(), lectureA.getLecturerName()),
+					tuple(lectureB.getId(), lectureB.getTitle(), lectureB.getLecturerName()),
+					tuple(lectureC.getId(), lectureC.getTitle(), lectureC.getLecturerName())
+				);
+		}
+
+		@DisplayName("신청한 강의가 없으면 신청한 강의 목록 조회시 빈 리스트를 반환한다.")
+		@Test
+		void givenDidNotEnrolledUserIdWhenGetEnrolledLecturesThenReturnEmptyList() throws Exception {
+			// given
+			final Long userId = 1L;
+			final LocalDateTime startedAt = LocalDateTime.of(2024, 12, 20, 10, 0);
+			final LocalDateTime endedAt = LocalDateTime.of(2024, 12, 21, 10, 0);
+
+			// @formatter:off
+			lectureJpaRepository.save(Lecture.builder().title("titleA").lecturerName("lecturerNameA").period(new Period(startedAt, endedAt)).build());
+			lectureJpaRepository.save(Lecture.builder().title("titleB").lecturerName("lecturerNameB").period(new Period(startedAt, endedAt)).build());
+			lectureJpaRepository.save(Lecture.builder().title("titleC").lecturerName("lecturerNameC").period(new Period(startedAt, endedAt)).build());
+			// @formatter:on
+
+			// when
+			final List<EnrollLectureResponse> result = lectureService.getEnrolledLectures(userId);
+
+			// then
+			assertThat(result).isEmpty();
+		}
+	}
 }

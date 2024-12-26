@@ -250,4 +250,51 @@ class LectureServiceUnitTest extends BaseTest {
 				.hasMessage(LECTURE_IS_FULL.getMessage());
 		}
 	}
+
+	@DisplayName("사용자별 신청한 강의 목록 조회")
+	@Nested
+	class EnrolledLectures {
+
+		@DisplayName("사용자가 신청한 강의 목록을 조회할 수 있다.")
+		@Test
+		void givenUserIdWhenGetEnrolledLecturesThenReturnEnrolledLectures() throws Exception {
+			// given
+			final Long userId = 1L;
+
+			final String title = "titleA";
+			final String lecturerName = "lecturerNameA";
+			final int currentEnrolledCount = 20;
+			final LocalDateTime enrolledAt = LocalDateTime.now();
+			given(enrolledLectureRepository.findAllByUserId(userId))
+				.willReturn(List.of(
+					new EnrollLectureResult(1L, title, lecturerName, currentEnrolledCount, enrolledAt)
+				));
+
+			// when
+			final List<EnrollLectureResponse> result = lectureService.getEnrolledLectures(userId);
+
+			// then
+			assertThat(result).hasSize(1)
+				.extracting("lectureId", "title", "lecturerName", "currentEnrolledCount", "enrolledAt")
+				.containsExactlyInAnyOrder(
+					tuple(1L, title, lecturerName, currentEnrolledCount, enrolledAt)
+				);
+		}
+
+		@DisplayName("신청한 강의가 없으면 신청한 강의 목록 조회시 빈 리스트를 반환한다.")
+		@Test
+		void givenDidNotEnrolledUserIdWhenGetEnrolledLecturesThenReturnEmptyList() throws Exception {
+			// given
+			final Long userId = 1L;
+
+			given(enrolledLectureRepository.findAllByUserId(userId))
+				.willReturn(List.of());
+
+			// when
+			final List<EnrollLectureResponse> result = lectureService.getEnrolledLectures(userId);
+
+			// then
+			assertThat(result).isEmpty();
+		}
+	}
 }
