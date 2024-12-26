@@ -15,6 +15,7 @@ import io.hhplus.lecture.lecture.domain.Lecture;
 
 public interface LectureJpaRepository extends JpaRepository<Lecture, Long> {
 
+	@Lock(LockModeType.PESSIMISTIC_WRITE)
 	Optional<Lecture> findById(final Long lectureId);
 
 	@Query("""

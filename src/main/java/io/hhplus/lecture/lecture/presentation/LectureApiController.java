@@ -48,4 +48,16 @@ public class LectureApiController {
 	public ApiResponse<EnrolledLectureApiResponse> enroll(@RequestBody EnrollLectureApiRequest request) {
 		return ApiResponse.success(EnrolledLectureApiResponse.of(lectureService.enroll(request.toServiceDto())));
 	}
+
+	@GetMapping("/enroll")
+	public ApiResponse<List<EnrolledLectureApiResponse>> getEnrolledLectures(@RequestParam Long userId) {
+		if (userId < 1) {
+			throw new LectureException(LectureErrorCode.INVALID_USER_ID);
+		}
+
+		return ApiResponse.success(lectureService.getEnrolledLectures(userId)
+			.stream()
+			.map(EnrolledLectureApiResponse::of)
+			.toList());
+	}
 }

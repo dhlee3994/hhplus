@@ -9,6 +9,8 @@ public enum LectureErrorCode {
 
 	// 100
 	INVALID_LECTURE_ID("L101", "유효하지 않은 강의입니다."),
+	INVALID_USER_ID("L102", "유효하지 않은 사용자입니다."),
+
 	// 200
 	INVALID_LECTURE_PERIOD("L201", "유효하지 않은 기간입니다."),
 	INVALID_SEARCH_PERIOD("L202", "유효하지 않은 조회 날짜 입니다."),

@@ -8,6 +8,9 @@ import io.hhplus.lecture.lecture.infrastructure.response.EnrollLectureResult;
 public interface EnrolledLectureRepository {
 
 	EnrolledLecture save(final EnrolledLecture enrolledLecture);
+
+	List<EnrollLectureResult> findAllByUserId(final Long userId);
+
 	Optional<EnrolledLecture> findByLectureIdAndUserId(final Long lectureId, final Long userId);
 
 	boolean isEnrolledLecture(final Long lectureId, final Long userId);

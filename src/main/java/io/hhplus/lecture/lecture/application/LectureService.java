@@ -71,4 +71,11 @@ public class LectureService {
 
 		return EnrollLectureResponse.of(lecture, savedEnrolledLecture);
 	}
+
+	public List<EnrollLectureResponse> getEnrolledLectures(final Long userId) {
+		final List<EnrollLectureResult> enrolledLectures = enrolledLectureRepository.findAllByUserId(userId);
+		return enrolledLectures.stream()
+			.map(EnrollLectureResponse::of)
+			.toList();
+	}
 }

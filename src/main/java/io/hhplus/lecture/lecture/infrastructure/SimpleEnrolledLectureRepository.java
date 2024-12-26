@@ -22,6 +22,11 @@ public class SimpleEnrolledLectureRepository implements EnrolledLectureRepositor
 	}
 
 	@Override
+	public List<EnrollLectureResult> findAllByUserId(final Long userId) {
+		return enrolledJpaRepository.findAllByUserId(userId);
+	}
+
+	@Override
 	public Optional<EnrolledLecture> findByLectureIdAndUserId(final Long lectureId, final Long userId) {
 		return enrolledJpaRepository.findByLectureIdAndUserId(lectureId, userId);
 	}
